@@ -1,9 +1,6 @@
 #![no_std]
 #![no_main]
 
-use rp235x_hal::{self as hal, entry, gpio, spi, Clock};
-
-use panic_probe as _;
 use display_interface_spi::SPIInterface;
 use embedded_graphics::draw_target::DrawTargetExt;
 use embedded_graphics::geometry::{Point, Size};
@@ -11,7 +8,10 @@ use embedded_graphics::image::{Image, ImageRaw, ImageRawLE};
 use embedded_graphics::mono_font::ascii::{FONT_6X10, FONT_8X13};
 use embedded_graphics::mono_font::{MonoTextStyle, MonoTextStyleBuilder};
 use embedded_graphics::prelude::{Drawable, Primitive};
-use embedded_graphics::primitives::{Circle, CornerRadii, Ellipse, PrimitiveStyle, PrimitiveStyleBuilder, Rectangle, RoundedRectangle, Triangle};
+use embedded_graphics::primitives::{
+    Circle, CornerRadii, Ellipse, PrimitiveStyle, PrimitiveStyleBuilder, Rectangle,
+    RoundedRectangle, Triangle,
+};
 use embedded_graphics::text::{Alignment, Baseline, Text, TextStyleBuilder};
 use embedded_graphics::transform::Transform;
 use embedded_graphics_core::draw_target::DrawTarget;
@@ -28,16 +28,17 @@ use mipidsi::models::ST7789;
 use mipidsi::options::ColorInversion::Inverted;
 use mipidsi::options::{Orientation, Rotation};
 use mipidsi::Builder;
+use panic_probe as _;
 use rp235x_hal::block::ImageDef;
 use rp235x_hal::fugit::RateExtU32;
 use rp235x_hal::gpio::FunctionSpi;
+use rp235x_hal::{self as hal, entry, gpio, spi, Clock};
 use tinybmp::Bmp;
 
 /// Tell the Boot ROM about our application
 #[link_section = ".start_block"]
 #[used]
 pub static IMAGE_DEF: ImageDef = hal::block::ImageDef::secure_exe();
-
 
 /// External high-speed crystal on the Raspberry Pi Pico 2 board is 12 MHz.
 /// Adjust if your board has a different frequency
@@ -71,9 +72,9 @@ where
         Rectangle::new(Point::new(32, 0), Size::new(64, 64)),
         CornerRadii::new(Size::new(16, 16)),
     )
-        .translate(Point::new(96 + 24, 108))
-        .into_styled(style)
-        .draw(target)
+    .translate(Point::new(96 + 24, 108))
+    .into_styled(style)
+    .draw(target)
 }
 
 #[entry]
@@ -96,8 +97,8 @@ fn main() -> ! {
         &mut pac.RESETS,
         &mut watchdog,
     )
-        .ok()
-        .unwrap();
+    .ok()
+    .unwrap();
 
     // The single-cycle I/O block controls our GPIO pins
     let sio = hal::Sio::new(pac.SIO);
@@ -114,7 +115,9 @@ fn main() -> ! {
     let cs = pins.gpio17.into_push_pull_output();
     let sck = pins.gpio18.into_function::<FunctionSpi>();
     let mosi = pins.gpio19.into_function::<FunctionSpi>();
-    let rst = pins.gpio20.into_push_pull_output_in_state(gpio::PinState::High);
+    let rst = pins
+        .gpio20
+        .into_push_pull_output_in_state(gpio::PinState::High);
     let miso = pins.gpio4.into_function::<FunctionSpi>();
     let mut bl = pins.gpio15.into_push_pull_output();
 
@@ -149,7 +152,7 @@ fn main() -> ! {
     let image_raw: ImageRawLE<Rgb565> = ImageRaw::new(include_bytes!("ferris.raw"), 86);
     let image: Image<_> = Image::new(&image_raw, Point::new(150, 8));
     image.draw(&mut display).unwrap();
-    
+
     let raw_image: Bmp<Rgb565> = Bmp::from_slice(include_bytes!("rust.bmp")).unwrap();
     let image = Image::new(&raw_image, Point::new(0, 0));
     image.draw(&mut display).unwrap();
@@ -183,21 +186,27 @@ fn main() -> ! {
         bounding_box.top_left,
         character_style,
         left_aligned,
-    ).draw(&mut display).unwrap();
+    )
+    .draw(&mut display)
+    .unwrap();
 
     Text::with_text_style(
         "Center aligned text, origin center center",
         bounding_box.center(),
         character_style,
         center_aligned,
-    ).draw(&mut display).unwrap();
+    )
+    .draw(&mut display)
+    .unwrap();
 
     Text::with_text_style(
         "Right aligned text, origin bottom right",
         bounding_box.bottom_right().unwrap(),
         character_style,
         right_aligned,
-    ).draw(&mut display).unwrap();
+    )
+    .draw(&mut display)
+    .unwrap();
 
     delay.delay_ns(2_000_000_000); // 2 seconds
     display.clear(Rgb565::BLACK).unwrap();
@@ -215,11 +224,13 @@ fn main() -> ! {
     draw_shapes(
         &mut display.translated(Point::new(24, 24)),
         stroke_off_fill_on,
-    ).unwrap();
+    )
+    .unwrap();
     draw_shapes(
         &mut display.translated(Point::new(40, 40)),
         stroke_off_fill_off,
-    ).unwrap();
+    )
+    .unwrap();
 
     delay.delay_ns(2_000_000_000); // 2 seconds
     display.clear(Rgb565::BLACK).unwrap();
@@ -235,12 +246,11 @@ fn main() -> ! {
         display.bounding_box(),
         character_style,
         textbox_style,
-    ).draw(&mut display).unwrap();
+    )
+    .draw(&mut display)
+    .unwrap();
 
     loop {
         cortex_m::asm::wfi(); // sleep infinitely
     }
 }
-
-
-

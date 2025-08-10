@@ -1,12 +1,11 @@
 #![no_std]
 #![no_main]
 
-use panic_halt as _;
-use rp235x_hal as hal;
-use hal::block::ImageDef;
 use embedded_hal::delay::DelayNs;
 use embedded_hal::pwm::SetDutyCycle;
-
+use hal::block::ImageDef;
+use panic_halt as _;
+use rp235x_hal as hal;
 
 /// Tell the Boot ROM about our application
 #[link_section = ".start_block"]
@@ -23,9 +22,8 @@ const HIGH: u16 = 25000;
 /// Adjust if your board has a different frequency
 const XTAL_FREQ_HZ: u32 = 12_000_000u32;
 
-
 #[hal::entry]
-fn main() -> ! {    
+fn main() -> ! {
     // Grab our singleton objects
     let mut pac = hal::pac::Peripherals::take().unwrap();
 
@@ -90,7 +88,6 @@ fn main() -> ! {
     }
 }
 
-
 // Program metadata for `picotool info`.
 // This isn't needed, but it's recomended to have these minimal entries.
 #[link_section = ".bi_entries"]
@@ -102,6 +99,5 @@ pub static PICOTOOL_ENTRIES: [hal::binary_info::EntryAddr; 5] = [
     hal::binary_info::rp_cargo_homepage_url!(),
     hal::binary_info::rp_program_build_attribute!(),
 ];
-
 
 // End of file

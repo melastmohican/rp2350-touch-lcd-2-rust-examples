@@ -1,8 +1,8 @@
 #![no_std]
 #![no_main]
 
-use panic_probe as _;
 use cst816s::{TouchEvent, TouchGesture, CST816S};
+use panic_probe as _;
 use rp235x_hal::{self as hal, entry, gpio, spi, Clock, I2C};
 
 use display_interface_spi::SPIInterface;
@@ -27,7 +27,6 @@ use rp235x_hal::gpio::{FunctionI2C, FunctionSpi, Pin};
 #[link_section = ".start_block"]
 #[used]
 pub static IMAGE_DEF: ImageDef = hal::block::ImageDef::secure_exe();
-
 
 /// External high-speed crystal on the Raspberry Pi Pico 2 board is 12 MHz.
 /// Adjust if your board has a different frequency
@@ -59,8 +58,8 @@ fn main() -> ! {
         &mut pac.RESETS,
         &mut watchdog,
     )
-        .ok()
-        .unwrap();
+    .ok()
+    .unwrap();
 
     // The single-cycle I/O block controls our GPIO pins
     let sio = hal::Sio::new(pac.SIO);
@@ -73,19 +72,22 @@ fn main() -> ! {
         &mut pac.RESETS,
     );
 
-   let dc = pins.gpio16.into_push_pull_output();
+    let dc = pins.gpio16.into_push_pull_output();
     let cs = pins.gpio17.into_push_pull_output();
     let sck = pins.gpio18.into_function::<FunctionSpi>();
     let mosi = pins.gpio19.into_function::<FunctionSpi>();
-    let rst = pins.gpio20.into_push_pull_output_in_state(gpio::PinState::High);
+    let rst = pins
+        .gpio20
+        .into_push_pull_output_in_state(gpio::PinState::High);
     let miso = pins.gpio4.into_function::<FunctionSpi>();
     let mut bl = pins.gpio15.into_push_pull_output();
-
 
     let sda_pin: Pin<_, FunctionI2C, _> = pins.gpio12.reconfigure();
     let scl_pin: Pin<_, FunctionI2C, _> = pins.gpio13.reconfigure();
     let tint = pins.gpio29.into_pull_down_input();
-    let trst = pins.gpio21.into_push_pull_output_in_state(gpio::PinState::High);
+    let trst = pins
+        .gpio21
+        .into_push_pull_output_in_state(gpio::PinState::High);
 
     let i2c = I2C::i2c0(
         pac.I2C0,
@@ -130,13 +132,12 @@ fn main() -> ! {
     let mut refresh_count = 0;
 
     loop {
-
         if let Some(evt) = touchpad.read_one_touch_event(true) {
             refresh_count += 1;
             //hprintln!("{:?}", evt).unwrap();
 
             draw_marker(&mut display, &evt, Rgb565::MAGENTA);
-            let vibe_time = match evt.gesture {
+            let _vibe_time = match evt.gesture {
                 TouchGesture::LongPress => {
                     refresh_count = 1000;
                     50_000
@@ -164,7 +165,7 @@ fn draw_background(display: &mut impl DrawTarget<Color = Rgb565>) {
         Point::new(HALF_SCREEN_WIDTH as i32, (SCREEN_HEIGHT / 2) as i32),
         SCREEN_RADIUS,
     )
-        .into_styled(PrimitiveStyle::with_stroke(Rgb565::YELLOW, 4));
+    .into_styled(PrimitiveStyle::with_stroke(Rgb565::YELLOW, 4));
     center_circle.draw(display).map_err(|_| ()).unwrap();
 }
 
@@ -182,20 +183,20 @@ fn draw_marker(display: &mut impl DrawTarget<Color = Rgb565>, event: &TouchEvent
                 Point::new(x_pos - SWIPE_LENGTH, y_pos - SWIPE_WIDTH),
                 Size::new((x_pos + SWIPE_LENGTH) as u32, (y_pos + SWIPE_WIDTH) as u32),
             )
-                .into_styled(PrimitiveStyle::with_fill(color))
-                .draw(display)
-                .map_err(|_| ())
-                .unwrap();
+            .into_styled(PrimitiveStyle::with_fill(color))
+            .draw(display)
+            .map_err(|_| ())
+            .unwrap();
         }
         TouchGesture::SlideUp | TouchGesture::SlideDown => {
             Rectangle::new(
                 Point::new(x_pos - SWIPE_WIDTH, y_pos - SWIPE_LENGTH),
                 Size::new((x_pos + SWIPE_WIDTH) as u32, (y_pos + SWIPE_LENGTH) as u32),
             )
-                .into_styled(PrimitiveStyle::with_fill(color))
-                .draw(display)
-                .map_err(|_| ())
-                .unwrap();
+            .into_styled(PrimitiveStyle::with_fill(color))
+            .draw(display)
+            .map_err(|_| ())
+            .unwrap();
         }
         TouchGesture::SingleClick => Circle::new(Point::new(x_pos, y_pos), 20)
             .into_styled(PrimitiveStyle::with_fill(color))
@@ -212,6 +213,3 @@ fn draw_marker(display: &mut impl DrawTarget<Color = Rgb565>, event: &TouchEvent
         _ => {}
     }
 }
-
-
-
